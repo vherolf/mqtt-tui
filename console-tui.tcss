@@ -1,0 +1,18 @@
+#serial-container {
+    width: 100%;
+    height: 1fr;
+    align: center middle;
+    overflow: auto;
+    
+}
+
+Input.-valid {
+    border: tall #ED3F1C 60%;
+}
+Input.-valid:focus {
+    border: tall #ED8008;
+    color: #ED8008;
+}
+Input {
+    margin: 1 1;
+}
