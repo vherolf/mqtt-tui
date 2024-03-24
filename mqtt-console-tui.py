@@ -23,7 +23,7 @@ class MQTTConsole(App):
     TITLE = "MQTT Console"
     BINDINGS = [Binding(key="q", action="quit_mqtt_console", description="Quit App"),
                 Binding(key="c", action="clear_mqtt_console", description="Clear Console"),]
-    #CSS_PATH = "console-tui.tcss"
+    CSS_PATH = "console-tui.tcss"
 
     client = None
     # the topic you wanna publish to
@@ -31,8 +31,8 @@ class MQTTConsole(App):
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
-        with Horizontal():
-            yield Input(placeholder=f"Publish mqtt topic on {self.topic}")
+        #with Horizontal():
+        yield Input(placeholder=f"Publish a mqtt message on topic {self.topic}")
         yield RichLog()
         yield Footer()
 

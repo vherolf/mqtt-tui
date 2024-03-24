@@ -1,9 +1,19 @@
-#serial-container {
-    width: 100%;
+#input-container {
+    width: 50%;
     height: 1fr;
     align: center middle;
     overflow: auto;
     
+}
+#topic-container {
+    width: 50%;
+    height: 1fr;
+    align: center middle;
+    overflow: auto;
+    
+}
+RichLog {
+    margin: 1 1;
 }
 
 Input.-valid {
