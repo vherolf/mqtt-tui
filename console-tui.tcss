@@ -1,13 +1,17 @@
 Screen {
     layout: grid;
-    grid-size: 2 2;
+    grid-size: 2 3;
     grid-columns: 1fr 1fr;
-    grid-rows: 1fr 2fr;
+    grid-rows: 0.25fr 1fr 2fr;
 }
 
 RichLog {
     margin: 1 1;
     column-span: 2;
+}
+
+Static {
+    text-align: center;
 }
 
 Input.-valid {

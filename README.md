@@ -1,5 +1,5 @@
 # mqtt-tui
-MQTT console tui for subscribing and publishing .
+MQTT console tui for subscribing and publishing .  
 Made with textualize :heart: and aiomqtt :sparkles: .
 
 

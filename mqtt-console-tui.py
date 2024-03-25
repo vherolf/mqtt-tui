@@ -5,8 +5,11 @@ import uuid, sys, os
 from aiomqtt import Client
 from textual import work, on
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, RichLog, Input
+from textual.widgets import Header, Footer, RichLog, Input, Select, Static
 from textual.binding import Binding
+from textual.suggester import SuggestFromList
+
+
 
 try:
     from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PW
@@ -27,13 +30,16 @@ class MQTTConsole(App):
     CSS_PATH = "console-tui.tcss"
 
     client = None
-    # the topic you wanna publish to
-    topic = f"textualize/rules"
+
+    topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
+    topic = topiclist[0]
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
-        yield Input(placeholder=f"Publish a mqtt message on topic {self.topic}", id='publish')
-        yield Input(placeholder=f"{self.topic}", id='topic')
+        yield Static('Topic')
+        yield Static('Publish')
+        yield Input(placeholder=f"{self.topic}", id='topic', suggester=SuggestFromList(self.topiclist, case_sensitive=True))
+        yield Input(placeholder=f"<- Publish a mqtt message on", id='publish')
         yield RichLog()
         yield Footer()
 
@@ -44,9 +50,10 @@ class MQTTConsole(App):
     async def input_submitted(self, message: Input.Submitted) -> None:
         if message.input.id == 'topic':
             self.topic = message.value
-            #self.query_one("#topic")
+            self.query_one('#topic', Input).placeholder = self.topic
         elif message.input.id == 'publish':
             await self.client.publish(self.topic, f"{message.value}")
+            self.query_one('#publish', Input).clear()
         
     @work(exclusive=False)
     async def mqttWorker(self):
@@ -61,6 +68,12 @@ class MQTTConsole(App):
 
             async for message in self.client.messages:
                 t = message.topic.value
+                ## somehow build the topiclist from reverse splitting with /
+                ## now clue yet how that works
+                #item = t.rsplit('/')
+                #while item:
+                #    self.topiclist.append(item)
+                #self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
                 try:
                     msg = message.payload.decode('utf-8')
                 except UnicodeDecodeError as _:
