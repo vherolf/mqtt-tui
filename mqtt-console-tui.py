@@ -69,6 +69,7 @@ class MQTTConsole(App):
             await self.client.subscribe("tasmota/discovery/#")
             ## subscribe to all
             await self.client.subscribe("#")
+            
             self.query_one('#topic', Input).disabled = False
             self.query_one('#publish', Input).disabled = False
             # doesnt work as expected (how to catch the input field ?)
