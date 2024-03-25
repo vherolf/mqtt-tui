@@ -1,21 +1,20 @@
 """
-simple mqtt console with textual and aiomqtt
+mqtt console with textual and aiomqtt
 """
 import uuid, sys, os
 from aiomqtt import Client
 from textual import work, on
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal
 from textual.widgets import Header, Footer, RichLog, Input
 from textual.binding import Binding
 
 try:
     from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PW
-    CLIENT_ID = CLIENT_ID + str(uuid.uuid1().bytes)
+    CLIENT_ID = CLIENT_ID + str(uuid.uuid4)
 except ModuleNotFoundError as _:
     MQTT_HOST = 'fill in your mqtt host here'
     MQTT_PORT = 'add your mqtt port here'
-    CLIENT_ID = 'put your client id here' + str(uuid.uuid1().bytes)
+    CLIENT_ID = 'put your client id here' + str(uuid.uuid4)
     # also set user and password if mqtt server needs it
     MQTT_USER = None
     MQTT_PW   = None
@@ -39,12 +38,8 @@ class MQTTConsole(App):
         yield Footer()
 
     def on_mount(self):
-        self.mqttWorker()    # https://github.com/sbtinstruments/aiomqtt#note-for-windows-users
-    # Change to the "Selector" event loop if platform is Windows
-    if sys.platform.lower() == "win32" or os.name.lower() == "nt":
-        from asyncio import set_event_loop_policy, WindowsSelectorEventLoopPolicy
-        set_event_loop_policy(WindowsSelectorEventLoopPolicy())
-
+        self.mqttWorker()    
+    
     @on(Input.Submitted)
     async def input_submitted(self, message: Input.Submitted) -> None:
         if message.input.id == 'topic':
@@ -62,7 +57,7 @@ class MQTTConsole(App):
             await self.client.subscribe("tele/#")
             #await self.client.subscribe("tasmota/discovery/#")
             ## subscribe to all
-            #await self.client.subscribe("#")
+            await self.client.subscribe("#")
 
             async for message in self.client.messages:
                 t = message.topic.value

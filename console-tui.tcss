@@ -15,7 +15,7 @@ Input.-valid {
 }
 Input.-valid:focus {
     border: tall #ED8008;
-    color: #ED8008;
+    /* color: #ED8008; */
 }
 Input {
     margin: 1 1;
