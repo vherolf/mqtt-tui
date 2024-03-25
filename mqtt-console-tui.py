@@ -2,7 +2,8 @@
 mqtt console with textual and aiomqtt
 """
 import uuid, sys, os
-from aiomqtt import Client
+import asyncio
+from aiomqtt import Client, MqttError
 from textual import work, on
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, RichLog, Input, Select, Static
@@ -31,6 +32,7 @@ class MQTTConsole(App):
 
     topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
     defaulttopic = topiclist[0]
+    connection_timeout_interval = 5 # Seconds
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
@@ -55,32 +57,37 @@ class MQTTConsole(App):
         
     @work(exclusive=False)
     async def mqttWorker(self):
-        async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PW) as self.client:
-            ## subscribe to the topic you also publishing
-            #await self.client.subscribe(self.topic)
-            ## tasmota plugs
-            #await self.client.subscribe("tele/#")
-            #await self.client.subscribe("tasmota/discovery/#")
-            ## subscribe to all
-            #await self.client.subscribe("#")
-            
-            ## or just use the self.topiclist
-            for topic in self.topiclist:
-                await self.client.subscribe(topic)
+        while True:
+            try:
+                async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PW) as self.client:
+                    ## subscribe to the topic you also publishing
+                    #await self.client.subscribe(self.topic)
+                    ## tasmota plugs
+                    #await self.client.subscribe("tele/#")
+                    #await self.client.subscribe("tasmota/discovery/#")
+                    ## subscribe to all
+                    #await self.client.subscribe("#")
+                    
+                    ## or just use the self.topiclist
+                    for topic in self.topiclist:
+                        await self.client.subscribe(topic)
 
-            async for message in self.client.messages:
-                t = message.topic.value
-                ## somehow build the topiclist from reverse splitting with /
-                ## now clue yet how that works
-                for item in t.split('/'):
-                    self.topiclist.append(item)
-                    self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
-                try:
-                    msg = message.payload.decode('utf-8')
-                except UnicodeDecodeError as _:
-                    msg = "couldn't decode message"
-                self.query_one(RichLog).write(f"{t}, {msg}")
-    
+                    async for message in self.client.messages:
+                        t = message.topic.value
+                        ## somehow build the topiclist from reverse splitting with /
+                        ## now clue yet how that works
+                        for item in t.split('/'):
+                            self.topiclist.append(item)
+                            self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
+                        try:
+                            msg = message.payload.decode('utf-8')
+                        except UnicodeDecodeError as _:
+                            msg = "couldn't decode message"
+                        self.query_one(RichLog).write(f"{t}, {msg}")
+            except MqttError:
+                print(f"Connection lost; Reconnecting in {self.connection_timeout_interval} seconds ...")
+                await asyncio.sleep(self.connection_timeout_interval)
+
     def action_clear_mqtt_console(self) -> None:
         self.query_one(RichLog).clear()
 
