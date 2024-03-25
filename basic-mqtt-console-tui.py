@@ -1,7 +1,7 @@
 """
 A basic mqtt console example with textual and aiomqtt
 """
-import uuid
+import uuid, sys, os
 from aiomqtt import Client
 from textual import work, on
 from textual.app import App, ComposeResult
@@ -68,5 +68,10 @@ class MQTTConsole(App):
         self.app.exit()
 
 if __name__ == "__main__":
+    # https://github.com/sbtinstruments/aiomqtt#note-for-windows-users
+    # Change to the "Selector" event loop if platform is Windows
+    if sys.platform.lower() == "win32" or os.name.lower() == "nt":
+        from asyncio import set_event_loop_policy, WindowsSelectorEventLoopPolicy
+        set_event_loop_policy(WindowsSelectorEventLoopPolicy())
     app = MQTTConsole()
     app.run()
