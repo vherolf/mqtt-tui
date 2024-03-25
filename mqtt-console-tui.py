@@ -27,12 +27,14 @@ class MQTTConsole(App):
     BINDINGS = [Binding(key="q", action="quit_mqtt_console", description="Quit App"),
                 Binding(key="c", action="clear_mqtt_console", description="Clear Console"),]
     CSS_PATH = "console-tui.tcss"
+    
+    AUTO_FOCUS = "#publish"
 
     client = None
 
     topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
     defaulttopic = topiclist[0]
-    connection_timeout_interval = 2 # Seconds
+    #connection_timeout_interval = 1 # Seconds
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
@@ -59,39 +61,37 @@ class MQTTConsole(App):
         
     @work(exclusive=False)
     async def mqttWorker(self):
-        while True:
-            try:
-                async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PW) as self.client:
+        async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PW) as self.client:
+            ## subscribe to the topic you also publishing
+            await self.client.subscribe(self.defaulttopic)
+            ## tasmota plugs
+            await self.client.subscribe("tele/#")
+            await self.client.subscribe("tasmota/discovery/#")
+            ## subscribe to all
+            await self.client.subscribe("#")
+            self.query_one('#topic', Input).disabled = False
+            self.query_one('#publish', Input).disabled = False
+            # doesnt work as expected (how to catch the input field ?)
+            self.query_one('#publish', Input).has_focus = True
 
-                    ## subscribe to the topic you also publishing
-                    #await self.client.subscribe(self.topic)
-                    ## tasmota plugs
-                    #await self.client.subscribe("tele/#")
-                    #await self.client.subscribe("tasmota/discovery/#")
-                    ## subscribe to all
-                    #await self.client.subscribe("#")
-                    
-                    ## or just use the self.topiclist
-                    for topic in self.topiclist:
-                        await self.client.subscribe(topic)
+            ## or just use the self.topiclist
+            ## hhhhm makes it slow (read more async stuff)
+            #for topic in self.topiclist:
+            #    await self.client.subscribe(topic)
 
-                    async for message in self.client.messages:
-                        t = message.topic.value
-                        ## somehow build the topiclist from reverse splitting with /
-                        ## now clue yet how that works
-                        #for item in t.split('/'):
-                        #    self.topiclist.append(item)
-                        #    self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
-                        try:
-                            msg = message.payload.decode('utf-8')
-                        except UnicodeDecodeError as _:
-                            msg = "couldn't decode message"
-                        self.query_one(RichLog).write(f"{t}, {msg}")
-                        self.query_one('#topic', Input).disabled = False
-                        self.query_one('#publish', Input).disabled = False
-            except MqttError:
-                print(f"Connection lost; Reconnecting in {self.connection_timeout_interval} seconds ...")
-                await asyncio.sleep(self.connection_timeout_interval)
+            async for message in self.client.messages:
+                t = message.topic.value
+                ## somehow build the topiclist from reverse splitting with /
+                ## now clue yet how that works
+                #for item in t.split('/'):
+                #    self.topiclist.append(item)
+                #    self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
+                try:
+                    msg = message.payload.decode('utf-8')
+                except UnicodeDecodeError as _:
+                    msg = "couldn't decode message"
+                self.query_one(RichLog).write(f"{t}, {msg}")
+
 
     def action_clear_mqtt_console(self) -> None:
         self.query_one(RichLog).clear()
