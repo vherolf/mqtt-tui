@@ -1,6 +1,7 @@
 """
 A basic mqtt console example with textual and aiomqtt
 """
+import uuid
 from aiomqtt import Client
 from textual import work, on
 from textual.app import App, ComposeResult
@@ -9,10 +10,11 @@ from textual.binding import Binding
 
 try:
     from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PW
+    CLIENT_ID = CLIENT_ID + str(uuid.uuid1().bytes)
 except ModuleNotFoundError as _:
     MQTT_HOST = 'fill in your mqtt host here'
     MQTT_PORT = 'add your mqtt port here'
-    CLIENT_ID = 'put your client id here'
+    CLIENT_ID = 'put your client id here' + str(uuid.uuid1().bytes)
     # also set user and password if mqtt server needs it
     MQTT_USER = None
     MQTT_PW   = None
