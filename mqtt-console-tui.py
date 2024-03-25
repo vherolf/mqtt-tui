@@ -1,7 +1,7 @@
 """
 simple mqtt console with textual and aiomqtt
 """
-import uuid
+import uuid, sys, os
 from aiomqtt import Client
 from textual import work, on
 from textual.app import App, ComposeResult
@@ -34,17 +34,22 @@ class MQTTConsole(App):
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
         yield Input(placeholder=f"Publish a mqtt message on topic {self.topic}", id='publish')
-        yield Input(placeholder=f"topic", id='topic')
+        yield Input(placeholder=f"{self.topic}", id='topic')
         yield RichLog()
         yield Footer()
 
     def on_mount(self):
-        self.mqttWorker()
+        self.mqttWorker()    # https://github.com/sbtinstruments/aiomqtt#note-for-windows-users
+    # Change to the "Selector" event loop if platform is Windows
+    if sys.platform.lower() == "win32" or os.name.lower() == "nt":
+        from asyncio import set_event_loop_policy, WindowsSelectorEventLoopPolicy
+        set_event_loop_policy(WindowsSelectorEventLoopPolicy())
 
     @on(Input.Submitted)
     async def input_submitted(self, message: Input.Submitted) -> None:
         if message.input.id == 'topic':
             self.topic = message.value
+            #self.query_one("#topic")
         elif message.input.id == 'publish':
             await self.client.publish(self.topic, f"{message.value}")
         
@@ -74,5 +79,10 @@ class MQTTConsole(App):
         self.app.exit()
 
 if __name__ == "__main__":
+    # https://github.com/sbtinstruments/aiomqtt#note-for-windows-users
+    # Change to the "Selector" event loop if platform is Windows
+    if sys.platform.lower() == "win32" or os.name.lower() == "nt":
+        from asyncio import set_event_loop_policy, WindowsSelectorEventLoopPolicy
+        set_event_loop_policy(WindowsSelectorEventLoopPolicy())
     app = MQTTConsole()
     app.run()
