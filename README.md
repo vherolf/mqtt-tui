@@ -9,6 +9,6 @@ Made with [textualize](https://textual.textualize.io/) :heart: and [aiomqtt](htt
 
 # Special thanks to
 
-[nordwood867](https://github.com/norwood867) for the point the right direction.    
+[nordwood867](https://github.com/norwood867) for pointing in the right direction.    
 
 And ofc to all the textualize and aiomqtt developers  
