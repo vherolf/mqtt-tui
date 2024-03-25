@@ -32,7 +32,7 @@ class MQTTConsole(App):
 
     topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
     defaulttopic = topiclist[0]
-    connection_timeout_interval = 5 # Seconds
+    connection_timeout_interval = 2 # Seconds
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
@@ -44,13 +44,15 @@ class MQTTConsole(App):
         yield Footer()
 
     def on_mount(self):
+        self.query_one('#topic', Input).disabled = True
+        self.query_one('#publish', Input).disabled = True
         self.mqttWorker()    
     
     @on(Input.Submitted)
     async def input_submitted(self, message: Input.Submitted) -> None:
         if message.input.id == 'topic':
             self.defaulttopic = message.value
-            self.query_one('#topic', Input).placeholder = self.topic
+            self.query_one('#topic', Input).placeholder = self.defaulttopic
         elif message.input.id == 'publish':
             await self.client.publish(self.defaulttopic, f"{message.value}")
             self.query_one('#publish', Input).clear()
@@ -60,6 +62,7 @@ class MQTTConsole(App):
         while True:
             try:
                 async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PW) as self.client:
+
                     ## subscribe to the topic you also publishing
                     #await self.client.subscribe(self.topic)
                     ## tasmota plugs
@@ -76,14 +79,16 @@ class MQTTConsole(App):
                         t = message.topic.value
                         ## somehow build the topiclist from reverse splitting with /
                         ## now clue yet how that works
-                        for item in t.split('/'):
-                            self.topiclist.append(item)
-                            self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
+                        #for item in t.split('/'):
+                        #    self.topiclist.append(item)
+                        #    self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
                         try:
                             msg = message.payload.decode('utf-8')
                         except UnicodeDecodeError as _:
                             msg = "couldn't decode message"
                         self.query_one(RichLog).write(f"{t}, {msg}")
+                        self.query_one('#topic', Input).disabled = False
+                        self.query_one('#publish', Input).disabled = False
             except MqttError:
                 print(f"Connection lost; Reconnecting in {self.connection_timeout_interval} seconds ...")
                 await asyncio.sleep(self.connection_timeout_interval)
