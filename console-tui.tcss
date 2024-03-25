@@ -1,19 +1,13 @@
-#input-container {
-    width: 50%;
-    height: 1fr;
-    align: center middle;
-    overflow: auto;
-    
+Screen {
+    layout: grid;
+    grid-size: 2 2;
+    grid-columns: 1fr 1fr;
+    grid-rows: 1fr 2fr;
 }
-#topic-container {
-    width: 50%;
-    height: 1fr;
-    align: center middle;
-    overflow: auto;
-    
-}
+
 RichLog {
     margin: 1 1;
+    column-span: 2;
 }
 
 Input.-valid {
