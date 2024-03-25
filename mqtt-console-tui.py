@@ -30,13 +30,13 @@ class MQTTConsole(App):
     client = None
 
     topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
-    topic = topiclist[0]
+    defaulttopic = topiclist[0]
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
         yield Static('Topic')
         yield Static('Publish')
-        yield Input(placeholder=f"{self.topic}", id='topic', suggester=SuggestFromList(self.topiclist, case_sensitive=True))
+        yield Input(placeholder=f"{self.defaulttopic}", id='topic', suggester=SuggestFromList(self.topiclist, case_sensitive=True))
         yield Input(placeholder=f"<- Publish a mqtt message", id='publish')
         yield RichLog()
         yield Footer()
@@ -47,10 +47,10 @@ class MQTTConsole(App):
     @on(Input.Submitted)
     async def input_submitted(self, message: Input.Submitted) -> None:
         if message.input.id == 'topic':
-            self.topic = message.value
+            self.defaulttopic = message.value
             self.query_one('#topic', Input).placeholder = self.topic
         elif message.input.id == 'publish':
-            await self.client.publish(self.topic, f"{message.value}")
+            await self.client.publish(self.defaulttopic, f"{message.value}")
             self.query_one('#publish', Input).clear()
         
     @work(exclusive=False)
