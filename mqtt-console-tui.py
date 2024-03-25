@@ -9,8 +9,6 @@ from textual.widgets import Header, Footer, RichLog, Input, Select, Static
 from textual.binding import Binding
 from textual.suggester import SuggestFromList
 
-
-
 try:
     from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PW
     CLIENT_ID = CLIENT_ID + str(uuid.uuid4)
@@ -39,7 +37,7 @@ class MQTTConsole(App):
         yield Static('Topic')
         yield Static('Publish')
         yield Input(placeholder=f"{self.topic}", id='topic', suggester=SuggestFromList(self.topiclist, case_sensitive=True))
-        yield Input(placeholder=f"<- Publish a mqtt message on", id='publish')
+        yield Input(placeholder=f"<- Publish a mqtt message", id='publish')
         yield RichLog()
         yield Footer()
 
@@ -59,21 +57,24 @@ class MQTTConsole(App):
     async def mqttWorker(self):
         async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PW) as self.client:
             ## subscribe to the topic you also publishing
-            await self.client.subscribe(self.topic)
+            #await self.client.subscribe(self.topic)
             ## tasmota plugs
-            await self.client.subscribe("tele/#")
+            #await self.client.subscribe("tele/#")
             #await self.client.subscribe("tasmota/discovery/#")
             ## subscribe to all
-            await self.client.subscribe("#")
+            #await self.client.subscribe("#")
+            
+            ## or just use the self.topiclist
+            for topic in self.topiclist:
+                await self.client.subscribe(topic)
 
             async for message in self.client.messages:
                 t = message.topic.value
                 ## somehow build the topiclist from reverse splitting with /
                 ## now clue yet how that works
-                #item = t.rsplit('/')
-                #while item:
-                #    self.topiclist.append(item)
-                #self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
+                for item in t.split('/'):
+                    self.topiclist.append(item)
+                    self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
                 try:
                     msg = message.payload.decode('utf-8')
                 except UnicodeDecodeError as _:
