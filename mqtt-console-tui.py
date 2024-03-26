@@ -15,8 +15,8 @@ try:
     CLIENT_ID = CLIENT_ID + str(uuid.uuid4)
 except ModuleNotFoundError as _:
     MQTT_HOST = 'fill in your mqtt host here'
-    MQTT_PORT = 'add your mqtt port here'
-    CLIENT_ID = 'put your client id here' + str(uuid.uuid4)
+    MQTT_PORT = 1883
+    CLIENT_ID = 'textual-client-' + str(uuid.uuid4)
     # also set user and password if mqtt server needs it
     MQTT_USER = None
     MQTT_PW   = None
@@ -34,30 +34,30 @@ class MQTTConsole(App):
 
     topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
     defaulttopic = topiclist[0]
-    #connection_timeout_interval = 1 # Seconds
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
         yield Static('Topic')
         yield Static('Publish')
-        yield Input(placeholder=f"{self.defaulttopic}", id='topic', suggester=SuggestFromList(self.topiclist, case_sensitive=True))
-        yield Input(placeholder=f"<- Publish a mqtt message", id='publish')
+        yield Input(id='topic', placeholder=f"{self.defaulttopic}", suggester=SuggestFromList(self.topiclist, case_sensitive=True))
+        yield Input(id='publish', placeholder=f"<- Publish a mqtt message")
         yield RichLog()
         yield Footer()
 
     def on_mount(self):
-        self.query_one('#topic', Input).disabled = True
-        self.query_one('#publish', Input).disabled = True
+        #self.query_one('#topic', Input).disabled = True
+        #self.query_one('#publish', Input).disabled = True
         self.mqttWorker()    
     
-    @on(Input.Submitted)
-    async def input_submitted(self, message: Input.Submitted) -> None:
-        if message.input.id == 'topic':
-            self.defaulttopic = message.value
-            self.query_one('#topic', Input).placeholder = self.defaulttopic
-        elif message.input.id == 'publish':
-            await self.client.publish(self.defaulttopic, f"{message.value}")
-            self.query_one('#publish', Input).clear()
+    @on(Input.Changed, '#topic')
+    async def input_topic(self, message: Input.Changed) -> None:
+        self.defaulttopic = message.value
+        self.query_one('#topic', Input).placeholder = self.defaulttopic
+
+    @on(Input.Submitted, '#publish')
+    async def input_publish(self, message: Input.Submitted) -> None:
+        await self.client.publish(self.defaulttopic, f"{message.value}")
+        self.query_one('#publish', Input).clear()
         
     @work(exclusive=False)
     async def mqttWorker(self):
@@ -70,8 +70,8 @@ class MQTTConsole(App):
             ## subscribe to all
             await self.client.subscribe("#")
             
-            self.query_one('#topic', Input).disabled = False
-            self.query_one('#publish', Input).disabled = False
+            #self.query_one('#topic', Input).disabled = False
+            #self.query_one('#publish', Input).disabled = False
             # doesnt work as expected (how to catch the input field ?)
             self.query_one('#publish', Input).has_focus = True
 
