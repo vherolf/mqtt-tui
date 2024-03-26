@@ -33,45 +33,41 @@ class MQTTConsole(App):
     client = None
 
     topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
-    defaulttopic = topiclist[0]
+    current_topic = topiclist[0]
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
         yield Static('Topic')
         yield Static('Publish')
-        yield Input(id='topic', placeholder=f"{self.defaulttopic}", suggester=SuggestFromList(self.topiclist, case_sensitive=True))
+        yield Input(id='topic', placeholder=f"{self.current_topic}", suggester=SuggestFromList(self.topiclist, case_sensitive=True))
         yield Input(id='publish', placeholder=f"<- Publish a mqtt message")
         yield RichLog()
         yield Footer()
 
-    def on_mount(self):
-        #self.query_one('#topic', Input).disabled = True
-        #self.query_one('#publish', Input).disabled = True
+    def on_load(self):
         self.mqttWorker()    
     
     @on(Input.Changed, '#topic')
     async def input_topic(self, message: Input.Changed) -> None:
-        self.defaulttopic = message.value
-        self.query_one('#topic', Input).placeholder = self.defaulttopic
+        self.current_topic = message.value
+        self.query_one('#topic', Input).placeholder = self.current_topic
 
     @on(Input.Submitted, '#publish')
     async def input_publish(self, message: Input.Submitted) -> None:
-        await self.client.publish(self.defaulttopic, f"{message.value}")
+        await self.client.publish(self.current_topic, f"{message.value}")
         self.query_one('#publish', Input).clear()
         
     @work(exclusive=False)
     async def mqttWorker(self):
         async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PW) as self.client:
             ## subscribe to the topic you also publishing
-            await self.client.subscribe(self.defaulttopic)
+            await self.client.subscribe(self.current_topic)
             ## tasmota plugs
             await self.client.subscribe("tele/#")
             await self.client.subscribe("tasmota/discovery/#")
             ## subscribe to all
             await self.client.subscribe("#")
             
-            #self.query_one('#topic', Input).disabled = False
-            #self.query_one('#publish', Input).disabled = False
             # doesnt work as expected (how to catch the input field ?)
             self.query_one('#publish', Input).has_focus = True
 
