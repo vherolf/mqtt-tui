@@ -14,7 +14,7 @@ try:
     from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PW
     CLIENT_ID = CLIENT_ID + str(uuid.uuid4)
 except ModuleNotFoundError as _:
-    MQTT_HOST = 'fill in your mqtt host here'
+    MQTT_HOST = 'localhost'
     MQTT_PORT = 1883
     CLIENT_ID = 'textual-client-' + str(uuid.uuid4)
     # also set user and password if mqtt server needs it

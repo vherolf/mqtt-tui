@@ -6,7 +6,7 @@ import asyncio
 from aiomqtt import Client, MqttError
 from textual import work, on
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, RichLog, Input, Select, Static
+from textual.widgets import Header, Footer, RichLog, Input, Select, Static, Button
 from textual.binding import Binding
 from textual.suggester import SuggestFromList
 
@@ -14,23 +14,23 @@ try:
     from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PW
     CLIENT_ID = CLIENT_ID + str(uuid.uuid4)
 except ModuleNotFoundError as _:
-    MQTT_HOST = 'fill in your mqtt host here'
-    MQTT_PORT = 'add your mqtt port here'
-    CLIENT_ID = 'put your client id here' + str(uuid.uuid4)
+    MQTT_HOST = 'localhost'
+    MQTT_PORT = 1883
+    CLIENT_ID = 'buttonizer' + str(uuid.uuid4)
     # also set user and password if mqtt server needs it
     MQTT_USER = None
     MQTT_PW   = None
 
-class MQTTConsole(App):
+class Buttonizer(App):
     TITLE = "Buttonizer"
-    BINDINGS = [Binding(key="q", action="quit_mqtt_console", description="Quit App"),
-                Binding(key="c", action="clear_mqtt_console", description="Clear Console"),]
+    BINDINGS = [Binding(key="q", action="quit_buttonizer", description="Quit App"),]
     
     client = None
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
-        yield RichLog()
+        yield Button()
+        yield Button()
         yield Footer()
 
     def on_mount(self):
@@ -52,10 +52,7 @@ class MQTTConsole(App):
                 self.query_one(RichLog).write(f"{t}, {msg}")
 
 
-    def action_clear_mqtt_console(self) -> None:
-        self.query_one(RichLog).clear()
-
-    def action_quit_mqtt_console(self) -> None:
+    def action_quit_buttonizer(self) -> None:
         self.app.exit()
 
 if __name__ == "__main__":
@@ -64,5 +61,5 @@ if __name__ == "__main__":
     if sys.platform.lower() == "win32" or os.name.lower() == "nt":
         from asyncio import set_event_loop_policy, WindowsSelectorEventLoopPolicy
         set_event_loop_policy(WindowsSelectorEventLoopPolicy())
-    app = MQTTConsole()
+    app = Buttonizer()
     app.run()
