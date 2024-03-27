@@ -8,12 +8,12 @@ MQTT console tui for subscribing and publishing .
 Made with [textualize](https://textual.textualize.io/) :heart: and [aiomqtt](https://github.com/sbtinstruments/aiomqtt) :sparkles: .
 
 
-![mqtt console for subscribing and publishing](mqtt.gif)
+![mqtt console to subscribe/publish](mqtt.gif)
 
 
 ## basic-mqtt-console-tui.py
 
-just a simple example to show how subsribing and publishing works.  
+A very basic example to show how subscribe and publish could work.  
 
 
 ## buttonizer.py
