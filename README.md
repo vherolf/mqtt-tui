@@ -4,7 +4,7 @@ This is a playground for Textalize/aiomqtt examples especial for IOT stuff, but 
 
 ## mqtt-console-tui.py
 
-MQTT console tui for subscribing and publishing .  
+MQTT console tui for subscribing and publishing (main project here right now).  
 Made with [textualize](https://textual.textualize.io/) :heart: and [aiomqtt](https://github.com/sbtinstruments/aiomqtt) :sparkles: .
 
 
@@ -14,11 +14,12 @@ Made with [textualize](https://textual.textualize.io/) :heart: and [aiomqtt](htt
 ## basic-mqtt-console-tui.py
 
 A very basic example to show how subscribe and publish could work.  
+Without all the clutter.  
 
 
 ## buttonizer.py
 
-I try to make a graphical frontend for tasmota devices.   
+I try to make a graphical frontend for tasmota devices. (not working yet)
 
 
 # Special thanks to
