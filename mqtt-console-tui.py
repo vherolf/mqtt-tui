@@ -53,7 +53,7 @@ class MQTTConsole(App):
     async def input_topic(self, message: Input.Changed) -> None:
         self.current_topic = message.value
         self.title = f'connected to {MQTT_HOST}'
-        self.sub_title = f'Topic {message.value}'
+        self.sub_title = f'Topic {self.current_topic}'
         self.query_one('#topic', Input).placeholder = self.current_topic
 
     @on(Input.Submitted, '#publish')
