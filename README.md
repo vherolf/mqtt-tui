@@ -1,11 +1,11 @@
 # mqtt-tui
 
-This is a playground for Textalize/aiomqtt examples especial for IOT stuff, but can be used for all MQTT things.    
+This is a playground for [textualize](https://textual.textualize.io/) :heart: and [aiomqtt](https://github.com/sbtinstruments/aiomqtt) :sparkles: examples with focus on IOT stuff.  
 
 ## mqtt-console-tui.py
 
 MQTT console tui for subscribing and publishing (main project here right now).  
-Made with [textualize](https://textual.textualize.io/) :heart: and [aiomqtt](https://github.com/sbtinstruments/aiomqtt) :sparkles: .
+
 
 
 ![mqtt console to subscribe/publish](mqtt.gif)
