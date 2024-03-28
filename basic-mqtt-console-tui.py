@@ -9,15 +9,15 @@ from textual.widgets import Header, Footer, RichLog, Input
 from textual.binding import Binding
 
 try:
-    from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PW
+    from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PASS
     CLIENT_ID = CLIENT_ID + str(uuid.uuid4)
 except ModuleNotFoundError as _:
-    MQTT_HOST = 'fill in your mqtt host here'
-    MQTT_PORT = 'add your mqtt port here'
-    CLIENT_ID = 'put your client id here' + str(uuid.uuid4)
+    MQTT_HOST = 'localhost'
+    MQTT_PORT = 1883
+    CLIENT_ID = 'mqtt-console' + str(uuid.uuid4)
     # also set user and password if mqtt server needs it
     MQTT_USER = None
-    MQTT_PW   = None
+    MQTT_PASS   = None
 
 class MQTTConsole(App):
     """a basic mqtt console example"""
@@ -44,7 +44,7 @@ class MQTTConsole(App):
 
     @work(exclusive=False)
     async def mqttWorker(self):
-        async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PW) as self.client:
+        async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PASS) as self.client:
             ## subscribe to the topic you also publishing
             await self.client.subscribe(self.topic)
             ## tasmota plugs
