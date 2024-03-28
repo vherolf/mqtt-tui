@@ -29,7 +29,7 @@ class MQTTConsole(App):
     BINDINGS = [Binding(key="q", action="quit_mqtt_console", description="Quit App"),
                 Binding(key="c", action="clear_mqtt_console", description="Clear Console"),
                 Binding("p", "show_tab('publishTab')", "Publish"),
-                Binding("s", "show_tab('subscribeTab')", "Subscribe"),]
+                Binding("f", "show_tab('filterTab')", "Filter"),]
     CSS_PATH = "console-tui.tcss"
     #CSS_PATH = "testme.tcss"
     
@@ -58,7 +58,7 @@ class MQTTConsole(App):
                 )
                 yield RichLog()
             with TabPane("Filter", id="filterTab"):
-                yield Input(placeholder=f"fitler for topic", id='filter')
+                yield Input(placeholder=f"filter for topics (# is for all)", id='filter')
                 yield SelectionList[str](id='select')          
         
 
@@ -85,11 +85,9 @@ class MQTTConsole(App):
     @on(Input.Submitted, '#filter')
     async def input_filter(self, message: Input.Submitted) -> None:
         self.filterlist.append(message.value)
-        #self.selectionlist.append((message.value,message.value,True ))
         self.sel.add_option(Selection(message.value, message.value, True))
-        #await self.client.subscribe(f"{message.value}")
         self.query_one('#filter', Input).clear()
-        self.query_one(RichLog).write(f"added filter: {self.filterlist}")
+        self.query_one(RichLog).write(f"added filter: {message.value} - current filterlist is {self.filterlist}")
  
     @on(SelectionList.SelectionToggled, '#select')
     async def delete_filter(self, message: SelectionList.SelectionToggled) -> None:
@@ -97,7 +95,7 @@ class MQTTConsole(App):
         self.sel.clear_options() 
         for item in self.filterlist:
             self.sel.add_option(Selection(item, item,True) )
-        self.query_one(RichLog).write(f"delete filter: {message.selection.value} {self.filterlist}")
+        self.query_one(RichLog).write(f"deleted filter: {message.selection.value} - current filterlist is {self.filterlist}")
       
     @work(exclusive=False)
     async def mqttWorker(self):
