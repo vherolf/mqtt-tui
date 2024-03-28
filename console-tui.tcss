@@ -20,7 +20,6 @@ Label {
     height: auto;
 }
 
-
 #label-horizontal {
     layout: horizontal;
     height: auto;

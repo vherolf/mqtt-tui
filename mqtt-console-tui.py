@@ -36,7 +36,8 @@ class MQTTConsole(App):
 
     client = None
 
-    topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
+    #topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
+    topiclist = ['textualize/rules', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
     current_topic = topiclist[0]
 
     def compose(self) -> ComposeResult:
@@ -77,8 +78,9 @@ class MQTTConsole(App):
         self.query_one('#publish', Input).clear()
 
     @on(Input.Submitted, '#subscribe')
-    async def input_publish(self, message: Input.Submitted) -> None:
-        await self.client.publish(self.current_topic, f"{message.value}")
+    async def input_subscribe(self, message: Input.Submitted) -> None:
+        self.topiclist.append(message.value)
+        await self.client.subscribe(f"{message.value}")
         self.query_one('#subscribe', Input).clear()
         
     @work(exclusive=False)
@@ -87,10 +89,10 @@ class MQTTConsole(App):
             ## subscribe to the topic you also publishing
             await self.client.subscribe(self.current_topic)
             ## tasmota plugs
-            await self.client.subscribe("tele/#")
-            await self.client.subscribe("tasmota/discovery/#")
+            #await self.client.subscribe("tele/#")
+            #await self.client.subscribe("tasmota/discovery/#")
             ## subscribe to all
-            await self.client.subscribe("#")
+            #await self.client.subscribe("#")
             
             # doesnt work as expected (how to catch the input field ?)
             self.query_one('#publish', Input).has_focus = True
