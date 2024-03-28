@@ -37,10 +37,9 @@ class MQTTConsole(App):
 
     client = None
 
-    #topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
-    topiclist = ['textualize/rules', '#', '+/outside', 'temperature/#']
-    #selectionlist = [('textualize/rules','textualize/rules', True ), ('tele''tele', True)]
-    current_topic = topiclist[0]
+    
+    filterlist = ['#', '+/outside', 'temperature/#']
+    current_topic = 'textualize/rules'
 
     def compose(self) -> ComposeResult:
         yield Header(name=self.TITLE, show_clock=False)
@@ -53,7 +52,7 @@ class MQTTConsole(App):
                     id="label-horizontal",
                 )
                 yield Container(
-                    Input(id='topic', placeholder=f"{self.current_topic}", suggester=SuggestFromList(self.topiclist, case_sensitive=True)),
+                    Input(id='topic', placeholder=f"{self.current_topic}", suggester=SuggestFromList(self.filterlist, case_sensitive=True)),
                     Input(id='publish', placeholder=f"<- Publish a mqtt message"),
                     id="input-horizontal",
                 )
@@ -68,7 +67,7 @@ class MQTTConsole(App):
         self.title = f'connected to {MQTT_HOST}'
         self.sub_title = f'Topic {self.current_topic}'
         self.sel = self.query_one('#select', SelectionList)
-        for item in self.topiclist:
+        for item in self.filterlist:
             self.sel.add_option(Selection(item, item, True))
     
     @on(Input.Changed, '#topic')
@@ -85,20 +84,20 @@ class MQTTConsole(App):
 
     @on(Input.Submitted, '#filter')
     async def input_filter(self, message: Input.Submitted) -> None:
-        self.topiclist.append(message.value)
+        self.filterlist.append(message.value)
         #self.selectionlist.append((message.value,message.value,True ))
         self.sel.add_option(Selection(message.value, message.value, True))
         #await self.client.subscribe(f"{message.value}")
         self.query_one('#filter', Input).clear()
-        self.query_one(RichLog).write(f"added filter: {self.topiclist}")
+        self.query_one(RichLog).write(f"added filter: {self.filterlist}")
  
     @on(SelectionList.SelectionToggled, '#select')
     async def delete_filter(self, message: SelectionList.SelectionToggled) -> None:
-        self.topiclist.remove(message.selection.value)
+        self.filterlist.remove(message.selection.value)
         self.sel.clear_options() 
-        for item in self.topiclist:
+        for item in self.filterlist:
             self.sel.add_option(Selection(item, item,True) )
-        self.query_one(RichLog).write(f"delete filter: {message.selection.value} {self.topiclist}")
+        self.query_one(RichLog).write(f"delete filter: {message.selection.value} {self.filterlist}")
       
     @work(exclusive=False)
     async def mqttWorker(self):
@@ -108,26 +107,23 @@ class MQTTConsole(App):
             ## tasmota plugs
             #await self.client.subscribe("tele/#")
             #await self.client.subscribe("tasmota/discovery/#")
-            ## subscribe to all
+
+            ## subscribe to all 
             await self.client.subscribe("#")
             
             # doesnt work as expected (how to catch the input field ?)
             self.query_one('#publish', Input).has_focus = True
 
-            ## or just use the self.topiclist
-            ## hhhhm makes it slow (read more async stuff)
-            #for topic in self.topiclist:
-            #    await self.client.subscribe(topic)
-
+            # filter the messages with the filterlist
             async for message in self.client.messages:
-                for filter in self.topiclist:
+                for filter in self.filterlist:
                     if message.topic.matches(filter):
                         t = message.topic.value
-                        ## somehow build the topiclist from reverse splitting with /
+                        ## somehow build the filterlist from reverse splitting with /
                         ## now clue yet how that works
                         #for item in t.split('/'):
-                        #    self.topiclist.append(item)
-                        #    self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
+                        #    self.filterlist.append(item)
+                        #    self.query_one('#topic', Input).suggester = SuggestFromList(self.filterlist, case_sensitive=True)
                         try:
                             msg = message.payload.decode('utf-8')
                         except UnicodeDecodeError as _:
