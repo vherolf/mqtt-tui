@@ -38,7 +38,8 @@ class MQTTConsole(App):
     client = None
 
     #topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
-    topiclist = ['textualize/rules', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
+    topiclist = ['textualize/rules']
+
     current_topic = topiclist[0]
 
     def compose(self) -> ComposeResult:
