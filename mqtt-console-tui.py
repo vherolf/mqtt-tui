@@ -38,8 +38,8 @@ class MQTTConsole(App):
     client = None
 
     #topiclist = ['textualize/rules', '#', 'homeassitant', 'tasmota', 'tele', 'textualize', 'home' ]
-    topiclist = ['textualize/rules']
-
+    topiclist = ['textualize/rules', '#', '+/outside', 'temperature/#']
+    #selectionlist = [('textualize/rules','textualize/rules', True ), ('tele''tele', True)]
     current_topic = topiclist[0]
 
     def compose(self) -> ComposeResult:
@@ -58,8 +58,8 @@ class MQTTConsole(App):
                     id="input-horizontal",
                 )
                 yield RichLog()
-            with TabPane("Subscribe", id="subscribeTab"):
-                yield Input(placeholder=f"subscribe to topic", id='subscribe')
+            with TabPane("Filter", id="filterTab"):
+                yield Input(placeholder=f"fitler for topic", id='filter')
                 yield SelectionList[str](id='select')          
         
 
@@ -69,7 +69,7 @@ class MQTTConsole(App):
         self.sub_title = f'Topic {self.current_topic}'
         self.sel = self.query_one('#select', SelectionList)
         for item in self.topiclist:
-            self.sel.add_option(Selection(item, item))
+            self.sel.add_option(Selection(item, item, True))
     
     @on(Input.Changed, '#topic')
     async def input_topic(self, message: Input.Changed) -> None:
@@ -83,29 +83,33 @@ class MQTTConsole(App):
         await self.client.publish(self.current_topic, f"{message.value}")
         self.query_one('#publish', Input).clear()
 
-    @on(Input.Submitted, '#subscribe')
-    async def input_subscribe(self, message: Input.Submitted) -> None:
+    @on(Input.Submitted, '#filter')
+    async def input_filter(self, message: Input.Submitted) -> None:
         self.topiclist.append(message.value)
-        self.sel.add_option(Selection(message.value, message.value))
-        await self.client.subscribe(f"{message.value}")
-        self.query_one('#subscribe', Input).clear()
+        #self.selectionlist.append((message.value,message.value,True ))
+        self.sel.add_option(Selection(message.value, message.value, True))
+        #await self.client.subscribe(f"{message.value}")
+        self.query_one('#filter', Input).clear()
+        self.query_one(RichLog).write(f"added filter: {self.topiclist}")
  
-    @on(SelectionList.SelectedChanged, '#select')
-    async def delete_subscribe(self, message: SelectionList.SelectionToggled) -> None:
-        # message.selection.value 
-        pass
- 
+    @on(SelectionList.SelectionToggled, '#select')
+    async def delete_filter(self, message: SelectionList.SelectionToggled) -> None:
+        self.topiclist.remove(message.selection.value)
+        self.sel.clear_options() 
+        for item in self.topiclist:
+            self.sel.add_option(Selection(item, item,True) )
+        self.query_one(RichLog).write(f"delete filter: {message.selection.value} {self.topiclist}")
       
     @work(exclusive=False)
     async def mqttWorker(self):
         async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PASS) as self.client:
             ## subscribe to the topic you also publishing
-            await self.client.subscribe(self.current_topic)
+            #await self.client.subscribe(self.current_topic)
             ## tasmota plugs
             #await self.client.subscribe("tele/#")
             #await self.client.subscribe("tasmota/discovery/#")
             ## subscribe to all
-            #await self.client.subscribe("#")
+            await self.client.subscribe("#")
             
             # doesnt work as expected (how to catch the input field ?)
             self.query_one('#publish', Input).has_focus = True
@@ -116,17 +120,19 @@ class MQTTConsole(App):
             #    await self.client.subscribe(topic)
 
             async for message in self.client.messages:
-                t = message.topic.value
-                ## somehow build the topiclist from reverse splitting with /
-                ## now clue yet how that works
-                #for item in t.split('/'):
-                #    self.topiclist.append(item)
-                #    self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
-                try:
-                    msg = message.payload.decode('utf-8')
-                except UnicodeDecodeError as _:
-                    msg = "couldn't decode message"
-                self.query_one(RichLog).write(f"{t}, {msg}")
+                for filter in self.topiclist:
+                    if message.topic.matches(filter):
+                        t = message.topic.value
+                        ## somehow build the topiclist from reverse splitting with /
+                        ## now clue yet how that works
+                        #for item in t.split('/'):
+                        #    self.topiclist.append(item)
+                        #    self.query_one('#topic', Input).suggester = SuggestFromList(self.topiclist, case_sensitive=True)
+                        try:
+                            msg = message.payload.decode('utf-8')
+                        except UnicodeDecodeError as _:
+                            msg = "couldn't decode message"
+                        self.query_one(RichLog).write(f"{t}, {msg}")
 
     def action_show_tab(self, tab: str) -> None:
         """Switch to a new tab."""
