@@ -31,14 +31,9 @@ class MQTTConsole(App):
                 Binding("p", "show_tab('publishTab')", "Publish"),
                 Binding("f", "show_tab('filterTab')", "Filter"),]
     CSS_PATH = "console-tui.tcss"
-    #CSS_PATH = "testme.tcss"
-    
     AUTO_FOCUS = "#publish"
-
     client = None
-
-    
-    filterlist = ['#', '+/outside', 'temperature/#']
+    filterlist = ['#', "tuning/#", "tele/+/LWT", "stat/+/RESULT", "tui/#"]
     current_topic = 'textualize/rules'
 
     def compose(self) -> ComposeResult:
