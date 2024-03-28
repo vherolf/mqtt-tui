@@ -24,3 +24,8 @@ Label {
     layout: horizontal;
     height: auto;
 }
+SelectionList {
+    height:5fr;
+    border: solid $accent;
+    width: 1fr;
+}

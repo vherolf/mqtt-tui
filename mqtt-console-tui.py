@@ -7,9 +7,10 @@ from aiomqtt import Client, MqttError
 from textual import work, on
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, Container
-from textual.widgets import Header, Footer, RichLog, Input, Select, Static,TabbedContent, TabPane, Label, Markdown
+from textual.widgets import Header, Footer, RichLog, Input, Select, Static,TabbedContent, TabPane, Label, Markdown, SelectionList
 from textual.binding import Binding
 from textual.suggester import SuggestFromList
+from textual.widgets.selection_list import Selection
 
 try:
     from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PASS
@@ -57,13 +58,17 @@ class MQTTConsole(App):
                 )
                 yield RichLog()
             with TabPane("Subscribe", id="subscribeTab"):
-                yield Input(placeholder=f"subscribe to topic", id='subscribe')           
+                yield Input(placeholder=f"subscribe to topic", id='subscribe')
+                yield SelectionList[str](id='select')          
         
 
     def on_mount(self):
         self.mqttWorker()
         self.title = f'connected to {MQTT_HOST}'
         self.sub_title = f'Topic {self.current_topic}'
+        self.sel = self.query_one('#select', SelectionList)
+        for item in self.topiclist:
+            self.sel.add_option(Selection(item, item))
     
     @on(Input.Changed, '#topic')
     async def input_topic(self, message: Input.Changed) -> None:
@@ -80,9 +85,16 @@ class MQTTConsole(App):
     @on(Input.Submitted, '#subscribe')
     async def input_subscribe(self, message: Input.Submitted) -> None:
         self.topiclist.append(message.value)
+        self.sel.add_option(Selection(message.value, message.value))
         await self.client.subscribe(f"{message.value}")
         self.query_one('#subscribe', Input).clear()
-        
+ 
+    @on(SelectionList.SelectedChanged, '#select')
+    async def delete_subscribe(self, message: SelectionList.SelectionToggled) -> None:
+        # message.selection.value 
+        pass
+ 
+      
     @work(exclusive=False)
     async def mqttWorker(self):
         async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PASS) as self.client:
