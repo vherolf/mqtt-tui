@@ -4,7 +4,8 @@ This is a playground for [textualize](https://textual.textualize.io/) :heart: an
 
 ## mqtt-console-tui.py
 
-MQTT console tui for subscribing and publishing (main project here right now).  
+MQTT console tui for publishing to topics and it subrcibes to all (but you can filter the topics).    
+main project here right now.  
 
 
 

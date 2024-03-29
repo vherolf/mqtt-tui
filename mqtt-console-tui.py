@@ -112,12 +112,6 @@ class MQTTConsole(App):
     @work(exclusive=False)
     async def mqttWorker(self):
         async with Client(MQTT_HOST, port=MQTT_PORT, identifier=CLIENT_ID, username=MQTT_USER, password=MQTT_PASS) as self.client:
-            ## subscribe to the topic you also publishing
-            #await self.client.subscribe(self.current_topic)
-            ## tasmota plugs
-            #await self.client.subscribe("tele/#")
-            #await self.client.subscribe("tasmota/discovery/#")
-
             ## subscribe to all 
             await self.client.subscribe("#")
             
