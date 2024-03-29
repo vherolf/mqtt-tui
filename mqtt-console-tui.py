@@ -13,7 +13,7 @@ from textual.suggester import SuggestFromList
 from textual.widgets.selection_list import Selection
 
 try:
-    from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PASS
+    from config import MQTT_HOST, MQTT_PORT, CLIENT_ID, MQTT_USER, MQTT_PASS, DEFAULT_SUB_LIST
     CLIENT_ID = CLIENT_ID + str(uuid.uuid4)
 except ModuleNotFoundError as _:
     MQTT_HOST = 'localhost'
@@ -22,6 +22,7 @@ except ModuleNotFoundError as _:
     # also set user and password if mqtt server needs it
     MQTT_USER = None
     MQTT_PASS = None
+    DEFAULT_SUB_LIST = ["tuning/#", "tele/+/LWT", "stat/+/RESULT", "tui/#"]
 
 class MQTTConsole(App):
     """a simple mqtt console"""
@@ -33,7 +34,7 @@ class MQTTConsole(App):
     CSS_PATH = "console-tui.tcss"
     AUTO_FOCUS = "#publish"
     client = None
-    filterlist = ["tuning/#", "tele/+/LWT", "stat/+/RESULT", "tui/#"]
+    filterlist = DEFAULT_SUB_LIST
     current_topic = 'textualize/rules'
     filter_on = False
 
