@@ -97,7 +97,7 @@ class MQTTConsole(App):
             self.query_one(RichLog).write(f"added filter: {message.value} -- current filterlist is {self.filterlist}")
 
     @on(Switch.Changed, '#togglefilter') 
-    def dostuff(self, message: Switch.Changed) -> None:
+    def toggle_filter_on_switch(self, message: Switch.Changed) -> None:
         self.filter_on = message.switch.value
         self.query_one(RichLog).write(f"Filter: {self.filter_on} -- current filterlist is {self.filterlist}")
         
