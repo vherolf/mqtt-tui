@@ -54,8 +54,11 @@ class MQTTConsole(App):
                 )
                 yield RichLog()
             with TabPane("Filter", id="filterTab"):
-                yield Input(placeholder=f"filter for topics (# is for all)", id='filter')
-                yield Switch(value=self.filter_on,id='all_messages')
+                yield Container(
+                    Switch(value=self.filter_on,id='all_messages'),
+                    Input(placeholder=f"filter for topics (# is for all)", id='filter'),
+                    id='filter-horizontal' ,
+                )
                 yield SelectionList[str](id='select')          
         
 
