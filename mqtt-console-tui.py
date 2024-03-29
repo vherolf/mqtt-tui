@@ -28,8 +28,8 @@ class MQTTConsole(App):
     TITLE = "MQTT Console"
     BINDINGS = [Binding(key="q", action="quit_mqtt_console", description="Quit App"),
                 Binding(key="c", action="clear_mqtt_console", description="Clear Console"),
-                Binding("p", "show_tab('publishTab')", "Publish"),
-                Binding("f", "show_tab('filterTab')", "Filter"),]
+                Binding(key="f", action="toggle_filter", description="Toggle Filter"),]
+                #Binding("p", "show_tab('publishTab')", "Publish"),
     CSS_PATH = "console-tui.tcss"
     AUTO_FOCUS = "#publish"
     client = None
@@ -55,8 +55,8 @@ class MQTTConsole(App):
                 yield RichLog()
             with TabPane("Filter", id="filterTab"):
                 yield Container(
-                    Switch(value=self.filter_on,id='all_messages'),
-                    Input(placeholder=f"filter for topics (# is for all)", id='filter'),
+                    Switch(value=self.filter_on,id='togglefilter'),
+                    Input(placeholder=f"filter for topics", id='filter'),
                     id='filter-horizontal' ,
                 )
                 yield SelectionList[str](id='select')          
@@ -85,20 +85,20 @@ class MQTTConsole(App):
     @on(Input.Submitted, '#filter')
     async def input_filter(self, message: Input.Submitted) -> None:
         if message.value == '#':
-            sw = self.query_one('#all_messages', Switch)
+            sw = self.query_one('#togglefilter', Switch)
             sw.toggle()
             self.filter_on = sw.value
-            self.query_one(RichLog).write(f"Filter: {sw.value}")
+            self.query_one(RichLog).write(f"Filter: {sw.value} -- current filterlist is {self.filterlist}")
         else:
             self.filterlist.append(message.value)
             self.sel.add_option(Selection(message.value, message.value, True))
             self.query_one('#filter', Input).clear()
-            self.query_one(RichLog).write(f"added filter: {message.value} - current filterlist is {self.filterlist}")
+            self.query_one(RichLog).write(f"added filter: {message.value} -- current filterlist is {self.filterlist}")
 
-    @on(Switch.Changed, '#all_messages') 
+    @on(Switch.Changed, '#togglefilter') 
     def dostuff(self, message: Switch.Changed) -> None:
         self.filter_on = message.switch.value
-        self.query_one(RichLog).write(f"Filter: {self.filter_on}")
+        self.query_one(RichLog).write(f"Filter: {self.filter_on} -- current filterlist is {self.filterlist}")
         
     @on(SelectionList.SelectionToggled, '#select')
     async def delete_filter(self, message: SelectionList.SelectionToggled) -> None:
@@ -106,7 +106,7 @@ class MQTTConsole(App):
         self.sel.clear_options()
         for item in self.filterlist:
             self.sel.add_option(Selection(item, item,True) )
-        self.query_one(RichLog).write(f"deleted filter: {message.selection.value} - current filterlist is {self.filterlist}")
+        self.query_one(RichLog).write(f"deleted filter: {message.selection.value} -- current filterlist is {self.filterlist}")
       
     @work(exclusive=False)
     async def mqttWorker(self):
@@ -154,6 +154,9 @@ class MQTTConsole(App):
 
     def action_clear_mqtt_console(self) -> None:
         self.query_one(RichLog).clear()
+    
+    def action_toggle_filter(self) -> None:
+        self.query_one('#togglefilter',Switch).toggle()
 
     def action_quit_mqtt_console(self) -> None:
         self.app.exit()

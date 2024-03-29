@@ -26,4 +26,4 @@ I try to make a graphical frontend for tasmota devices. (not working yet)
 
 [nordwood867](https://github.com/norwood867) for pointing in the right direction.    
 
-And ofc to all the textualize and aiomqtt developers  
+And ofc to all the [textualize](https://textual.textualize.io/) and [aiomqtt](https://github.com/sbtinstruments/aiomqtt) developers.  
