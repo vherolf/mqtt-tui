@@ -20,7 +20,8 @@ Without all the clutter.
 
 ## buttonizer.py
 
-I try to make a graphical frontend for tasmota devices. (not working yet)
+I try to make a graphical frontend tasmota switches.  
+Works with single relay tasmota devices so far.  
 
 
 # Special thanks to

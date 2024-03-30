@@ -57,7 +57,7 @@ class MQTTConsole(App):
             with TabPane("Filter", id="filterTab"):
                 yield Container(
                     Switch(value=self.filter_on,id='togglefilter'),
-                    Input(placeholder=f"filter for topics", id='filter'),
+                    Input(placeholder=f"add a topic filter", id='filter'),
                     id='filter-horizontal' ,
                 )
                 yield SelectionList[str](id='select')          
